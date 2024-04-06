@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<body>
+  <input type="text" id="ingredient" name="ingredient" />
+  <input type="button" value="add" id="add" />
+
+  <ul id="ingredients">
+    </ul>
+
+  <div id="results">
+  </div>
+
+  <script>
+
+    const add = document.querySelector("#add");
+    const ingredient = document.querySelector("#ingredient");
+    const ingredients = document.querySelector("#ingredients");
+    const results = document.querySelector("#results");
+
+    add.addEventListener("click", function() {
+	if(ingredient.value.length >= 2) {
+	    const li = document.createElement("li");
+	    li.appendChild(document.createTextNode(ingredient.value));
+	    li.addEventListener("click", function() {
+		li.remove();
+		update();
+	    });
+	    ingredients.appendChild(li);
+	    ingredient.value = "";
+
+	    update();
+	}
+    });
+
+    function update() {
+	    updateMatches().then(function(response) {
+		let display = response;
+		if (response.length > 10) {
+		    display = response.slice(0, 10);
+		}
+		results.replaceChildren();
+		display.forEach(appendResultEntry);
+            });
+    }
+
+    function appendResultEntry(item) {
+	const p = document.createElement("p");
+	p.appendChild(document.createTextNode(item.title));
+	const ul = document.createElement("ul");
+	item.ingredients.forEach(function (i) {
+	    const li = document.createElement("li");
+	    li.appendChild(document.createTextNode(i));
+	    ul.appendChild(li);
+	});
+	p.appendChild(ul);
+	results.appendChild(p);
+    }
+
+    function getIngredients() {
+	let result = [];
+	ingredients.childNodes.forEach(function (li) {
+	    if (li.tagName == "LI") {
+		result.push(li.childNodes[0].textContent);
+            }
+	});
+	return result;
+    }
+
+    async function updateMatches() {
+	const ingredients = getIngredients();
+	if (ingredients.length == 0) {
+	    results.replaceChildren();
+	    return [];
+	}
+	else {
+	    const response = await fetch('/api/recipe/byIngredients', {
+		method: "POST",
+		cache: "no-cache",
+		body: JSON.stringify(ingredients)
+	    });
+	    return response.json();
+	}
+    }
+
+  </script>
+</body>
+</html>

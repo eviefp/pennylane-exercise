@@ -29,11 +29,15 @@ run ApplicationConfig {..} =
             Web.scottyT port (`P.runSqlPersistMPool` pool) do
                 Web.get "/hello" do
                     Web.text "hello, world"
+                Web.get "/index.html" do
+                    Web.setHeader "Content-Type" "text/html"
+                    Web.file "./html/index.html"
                 Web.post "/api/recipe/byIngredients" do
                     let
                         ingredientMatch i = P.PersistText $ "%" <> i <> "%"
                     ingredients <- Web.jsonData @[Text]
                     let
                         sql = "select ?? from recipe where ingredients like ALL(?)"
-                    result <- lift $ P.rawSql sql [P.PersistArray (ingredientMatch <$> ingredients)]
-                    Web.json $ fmap (Db.recipeTitle . P.entityVal) result
+                    result <-
+                        lift $ P.rawSql @(P.Entity Db.Recipe) sql [P.PersistArray (ingredientMatch <$> ingredients)]
+                    Web.json $ P.entityVal <$> result
