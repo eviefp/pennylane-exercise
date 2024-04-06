@@ -61,6 +61,7 @@ library
     -- Modules exported by the library.
     exposed-modules:  Importer.Runner
                     , Database.Types
+                    , Server.Runner
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -74,7 +75,9 @@ library
                     , monad-logger
                     , persistent
                     , persistent-postgresql
+                    , scotty
                     , text
+                    , transformers
 
     -- Directories containing source files.
     hs-source-dirs:   src
@@ -99,7 +102,8 @@ executable pennylane-exercise
     build-depends:
         base ^>=4.18.1.0,
         bytestring,
-        pennylane-exercise
+        pennylane-exercise,
+        persistent-postgresql
 
     -- Directories containing source files.
     hs-source-dirs:   app
