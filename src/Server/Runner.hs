@@ -31,6 +31,9 @@ run ApplicationConfig {..} =
             Web.scottyT port (`P.runSqlPersistMPool` pool) do
                 Web.get "/ping" do
                     Web.text "pong"
+                Web.get "/" do
+                    Web.setHeader "Content-Type" "text/html"
+                    Web.file "./html/index.html"
                 Web.get "/index.html" do
                     Web.setHeader "Content-Type" "text/html"
                     Web.file "./html/index.html"
