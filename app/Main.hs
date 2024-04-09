@@ -4,11 +4,11 @@
 
 module Main where
 
+import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (pack)
-import Database.Persist.Postgresql qualified as P
 import Importer.Runner qualified as Importer
 import Server.Runner qualified as Server
-import System.Environment (getArgs, lookupEnv)
+import System.Environment (lookupEnv)
 
 main :: IO ()
 main = do
@@ -17,11 +17,9 @@ main = do
         Just rawConn -> do
             let
                 conn = pack rawConn
-            getArgs >>= \case
-                ["import"] -> Importer.run conn
-                _ -> Server.run (mkDefaultSettings conn)
+            Importer.run conn *> Server.run (mkDefaultSettings conn)
 
-mkDefaultSettings :: P.ConnectionString -> Server.ApplicationConfig
+mkDefaultSettings :: ByteString -> Server.ApplicationConfig
 mkDefaultSettings connectionString =
     let
         poolSize = 10

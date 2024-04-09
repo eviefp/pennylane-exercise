@@ -1,0 +1,105 @@
+* Technology
+
+Due to the very wide/vague requirements, I opted to treat this project
+as a prototype exercise, rather than a greenfield one.
+
+I opted for using Haskell on the backend, plain Javascript for the
+frontend, and Postgres as the backend database, mostly because these
+are the languages/technologies I'm most familiar with.
+
+* Process
+
+I've started by figuring out which libraries I should use. I did not
+want to use libraries that needed a lot of ceremony/overhead. While I
+enjoy using strongly type-safe libraries with Haskell, a prototype is
+not the time and place for that.
+
+And this is where the dwindling popularity of Haskell hurt me: it was
+hard to figure out which libraries are still maintained, updated, and
+working well. I ended up on:
+
+- =persistent= for database access; it has a DSL for defining tables,
+  migrations, connection pools, pretty much everything I needed out of
+  the box;
+- =scotty= for the web server: it's definitely not ready for
+  production use, but it's great for prototypes because it's small and
+  simple.
+
+After picking the libraries, it was quite simple to figure out the
+rest. One hurdle I ran into that took a chunk of my time was that
+=persistent= doesn't seem to have good support for Postgres arrays (I
+had initially hoped to store the ingredients list as an
+array). And while it seems to support them, it actually stores a
+string-serialized value of a Haskell list in a plain text field, and
+then parses it when reading it back. That's absolutely not ideal and
+not something I would ever use in production, but good enough for a
+prototype.
+
+Another small annoyiance was that =scotty= lacked a basic "serve this
+directory", and I had to manually add routes for both html and js
+files. Again, not good for production (easy to forget to add one and
+introduce a bug), but good enough for a prototype.
+
+The frontend turned out slightly more involved than I initially
+thought I'd do, and it was definitely starting to feel a bit awkward
+towards the end, in the sense that it was closing in on "I should use
+a framework". However, it was still quite manageable and simple enough
+for the purposes of a prototype.
+
+I actually spent a bit of time trying to host it on flyio. Creating a
+docker image was quite trivial, since =nix= makes it very easy to do,
+and I was already using =nix= for my dev shell and
+packaging/running. However, I could not get the docker image to
+load. I suspect that the resulting image was quite large and I needed
+to do some digging into the Haskell/cabal bundling and how to pack it
+further.
+
+* Next steps
+
+If this were a real prototype, here's what the next steps would look
+like for me:
+
+- figure out, along with the product team, what is the thing we're
+  testing for the prototype: is it the basic idea, functionalities,
+  scalability, frontend, etc.
+- figure out, along with the product team, how to get a hold of a
+  more structured database if possible,
+- if not, brainstorm ways to parse and validate the ingredients,
+
+* Take-aways
+
+If I were to do this all over again, I would probably pick a different
+language, perhaps one that has an easy/fast path for prototyping. My
+main contender right now would be Elixir/Pheonix.
+
+* How to run
+
+** Postgres
+You'll need an accessible postgres instance with an empty database,
+and you need to export the connection string as the =DATABASE_URL=
+environment variable.
+
+You can either edit the =flake.nix= file to add in your own info, or
+just override the environment variable that it exports (do note that
+the command below, =nix develop= will override it).
+
+Alternatively, if you do have postgres installed, you can use the
+scripts in the =./scripts= directory to create/run/destroy/stop a
+postgres instance.
+
+** Running/hacking
+
+You'll need =nix= (see https://nixos.org/download/#download-nix) to
+run this locally:
+
+#+begin_src shell
+$ nix develop
+$ cabal run pennylane-exercise
+#+end_src
+
+Once it's done (you should see some SQL logs followed by =scotty='s
+debug log saying the server is up and running on port 8888) you can
+access it via http://localhost:8888
+
+The development shell also has the haskell language server and
+everything that's needed for development.

@@ -30,8 +30,16 @@
             };
           };
         in
+        rec
         {
           default = hp.callCabal2nix "pennylane-exercise" ./. { };
+
+          docker = pkgs.dockerTools.buildLayeredImage {
+            name = "registry.fly.io/pennylane-exercise";
+            tag = "v0";
+            contents = with pkgs; [ cacert ];
+            config.Cmd = "${default}/bin/pennylane-exercise";
+          };
         });
       devShells = forAllSystems ({ pkgs }: {
         default = pkgs.mkShell {
